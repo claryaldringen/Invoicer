@@ -1,0 +1,10 @@
+.idea/*
+log/*
+temp/*
+vendor/*
+htdocs/js/*
+htdocs/bower_components/*
+!.gitignore
+!.htaccess
+!web.config
+app/config/config.local.neon

@@ -1,0 +1,11 @@
+{block content}
+	<h1 n:block=title>Sign in</h1>
+	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+	{control signInForm}
+{/block}
+
+{block head}
+	<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="//nette.github.io/resources/js/netteForms.min.js"></script>
+{/block}
+{* or use {include '../components/form.latte', form => signInForm} *}
