@@ -24,5 +24,6 @@ services:
 	- App\Forms\SignFormFactory
 	- App\Model\CustomerModel
 	- App\Model\InvoiceModel
+	- App\Model\InvoiceFactory
 	- Nette\Mail\SendmailMailer
 	router: App\RouterFactory::createRouter

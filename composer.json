@@ -31,8 +31,6 @@
 		"nette/utils": "~2.3.0",
 		"latte/latte": "~2.3.0",
 		"tracy/tracy": "~2.3.0",
-		"dg/adminer-custom": "~1.6",
-		"dibi/dibi": "^2.3",
 		"ondrejbrejla/eciovni": "^1.1"
 	},
 	"require-dev": {

@@ -12,6 +12,7 @@ use Nette,
 	Nette\Mail,
 	App\Model\CustomerModel,
 	App\Model\InvoiceModel,
+	App\Model\InvoiceFactory,
 	Nette\Mail\SendmailMailer;
 
 
@@ -24,12 +25,16 @@ class ApiPresenter extends BasePresenter{
 	/** @var InvoiceModel @inject */
 	public $invoiceModel;
 
+	/** @var InvoiceFactory @inject */
+	public $invoiceFactory;
+
 	/** @var SendmailMailer @inject */
 	public $mailer;
 
 	protected function startup() {
 		parent::startup();
 	}
+
 
 	public function renderCustomers() {
 		$request = $this->getHttpRequest();
@@ -49,11 +54,14 @@ class ApiPresenter extends BasePresenter{
 	public function renderInvoices() {
 		$response = array();
 		$request = $this->getHttpRequest()->getPost();
-		$this->invoiceModel->insertInvoice($request);
+		$vsId = $this->invoiceModel->insertInvoice($request);
 		if($request['send']) {
 			if($request['type'] == 2) {
 				$file = 'invoice_mail.latte';
 				$subject = 'Faktura č.';
+				$payment = $this->invoiceModel->getPaymentData($vsId);
+				$invoice = $this->invoiceFactory()->getEciovni((object)$this->user->identity->data, $this->customerModel->getCustomer($payment->customer_id), $payment, $this->invoiceModel->getItems($payment->variable_symbol_id));
+				$invoice->exportToPdf(new \mPDF('utf-8'), $vsId . '.pdf', 'invoices');
 			} else {
 				$file = 'payment_call.latte';
 				$subject = 'Výzva k platbě';
