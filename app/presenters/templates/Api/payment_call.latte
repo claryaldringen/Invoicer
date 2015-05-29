@@ -1,1 +1,31 @@
-Bla Bla
+Dobrý den,<br>
+posílám Vám vyúčtování za následující služby:<br>
+
+<table>
+	<tr>
+		<th>Počet</th>
+		<th>Položka</th>
+		<th>Cena za položku</th>
+		<th>Cena za položky</th>
+	</tr>
+	{var $total = 0}
+{foreach $items as $item}
+	<tr>
+		<td>{$item->count}</td>
+		<td>{$item->name}</td>
+		<td>{$item->price}</td>
+		<td>{$item->count*$item->price}</td>
+		{? $total += $item->count*$item->price ?}
+	</tr>
+{/foreach}
+	<tr>
+		<th colspan="3">Celková cena:</th>
+		<th>{$total}</th>
+	</tr>
+</table>
+
+Částku <b>{$total} Kč</b> můžete poslat bankovním převodem na účet <b>{$account}</b> s variabilním symbolem <b>{$vsId}</b>.
+Po obdržení platby Vám na tuto emailovou adresu příjde faktura.<br><br>
+
+S pozdravem<br>
+Martin Zadražil

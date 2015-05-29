@@ -14,6 +14,8 @@ class InvoiceModel {
 
 	const INVOICE = 2;
 
+	private $unpaired;
+
 	/** @var Nette\Database\Context  */
 	private $db;
 
@@ -58,6 +60,24 @@ class InvoiceModel {
 			WHERE vs.id=?";
 
 		return $this->db->query($sql, $vsId)->fetch();
+	}
+
+	public function getItems($vsId) {
+		return $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $vsId)->fetchAll();
+	}
+
+	public function checkPayment($vsId, $price) {
+		if(!isset($this->unpaired)) {
+			$sql = "SELECT vs.id,SUM(i.count*i.price) AS price FROM variable_symbol vs
+			JOIN item i ON i.variable_symbol_id=vs.id
+			LEFT JOIN invoice inv ON inv.variable_symbol_id=vs.id
+			WHERE inv.id IS NULL AND vs.status = 'active'
+			GROUP BY vs.id";
+
+			$this->unpaired = $this->db->query($sql)->fetchPairs();
+		}
+
+		return isset($this->unpaired[$vsId]) && $this->unpaired[$vsId] == $price;
 	}
 
 }
