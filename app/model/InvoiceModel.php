@@ -54,6 +54,21 @@ class InvoiceModel {
 		return $vsId;
 	}
 
+	public function invoiceFromVs($vsId, $send = false) {
+		$this->db->beginTransaction();
+		try {
+			$insert = array('variable_symbol_id' => $vsId);
+			if($send) $insert['send'] = date('Y-m-d H:i:s');
+			$this->db->query("INSERT INTO invoice", $insert);
+			$this->db->query("UPDATE variable_symbol SET payment_date=? WHERE id=?", date('Y-m-d H:i:s'), $vsId);
+			$this->db->commit();
+		} catch(Exception $ex) {
+			$this->db->rollBack();
+			throw $ex;
+		}
+		return $this;
+	}
+
 	public function getPaymentData($vsId) {
 		$sql = "SELECT vs.customer_id,issue_date,payment_date,i.* FROM variable_symbol vs
 			JOIN invoice i ON i.variable_symbol_id=vs.id
@@ -77,7 +92,9 @@ class InvoiceModel {
 			$this->unpaired = $this->db->query($sql)->fetchPairs();
 		}
 
-		return isset($this->unpaired[$vsId]) && $this->unpaired[$vsId] == $price;
+		if(!isset($this->unpaired[$vsId])) return "Undefined variable symbol $vsId.";
+		if($this->unpaired[$vsId] != $price) return "Bad amount for variable symbol $vsId. It get $price but expected amount is {$this->unpaired[$vsId]}.";
+		return true;
 	}
 
 }

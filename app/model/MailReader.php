@@ -33,6 +33,7 @@ class MailReader {
 				'body' => imap_body($this->conn, $i)
 			);
 		}
+
 		imap_errors();
 		imap_alerts();
 		imap_close($this->conn);
@@ -40,24 +41,23 @@ class MailReader {
 	}
 
 	public function parse($mail) {
-		$lines = explode("\r\n", $mail['body']);
-		$price = 0;
-		foreach($lines as $line) {
-			$matches = array();
-			preg_match("/VS: ([0-9\.\,]+)/", $line, $matches);
-			if(isset($matches[1])) {
-				$vs = $matches[1];
-				continue;
-			}
-			preg_match("/Částka: ([0-9\.\,]+)/", $line, $matches);
-			if(isset($matches[1])) {
-				$price = $matches[1];
-				continue;
+		if(strpos($mail['head']->Subject, 'Fio banka - prijem na konte') !== false){
+			$lines = explode("\r\n", $mail['body']);
+			$price = 0;
+			foreach($lines as $line) {
+				$matches = array();
+				preg_match("/VS: ([0-9\.\,]+)/", $line, $matches);
+				if(isset($matches[1])) {
+					$vs = $matches[1];
+					continue;
+				}
+				preg_match("/=C4=8C=C3=A1stka: ([0-9\.\,\s]+)/", $line, $matches);
+				if(isset($matches[1])) {
+					$price = floatval(str_replace(array(',', ' '), array('.',''), $matches[1]));
+					continue;
+				}
 			}
 		}
 		if(isset($vs)) return array('vs' => $vs, 'price' => $price);
-		if(strpos($mail['head']->Subject, 'fo') !== false){
-
-		}
 	}
 }
