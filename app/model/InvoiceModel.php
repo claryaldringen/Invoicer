@@ -97,4 +97,21 @@ class InvoiceModel {
 		return true;
 	}
 
+	public function getInvoices() {
+		$sql = "SELECT i.id,i.variable_symbol_id,vs.issue_date,vs.payment_date,c.name,c.street,c.number,c.post_code,c.city,c.ico,c.dic
+			FROM invoice i
+			JOIN variable_symbol vs ON vs.id = i.variable_symbol_id
+			JOIN customer c ON c.id=vs.customer_id
+			ORDER BY id DESC";
+		return $this->db->query($sql)->fetchAll();
+	}
+
+	public function delete($id) {
+		$this->db->query("DELETE FROM invoice WHERE id=?", $id);
+		$row = $this->db->query("SELECT COUNT(*) AS cnt FROM invoice")->fetch();
+		$count = $row['cnt'];
+		$this->db->query("ALTER TABLE invoice AUTO_INCREMENT=?", ++$count);
+		return $this;
+	}
+
 }

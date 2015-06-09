@@ -10,28 +10,12 @@ namespace App\Presenters;
 
 use Nette,
 	Nette\Mail,
-	App\Model\CustomerModel,
-	App\Model\InvoiceModel,
 	App\Model\MailReader,
 	Nette\Mail\SendmailMailer,
 	Nette\Latte;
 
 
-use OndrejBrejla\Eciovni\Eciovni;
-use OndrejBrejla\Eciovni\ParticipantBuilder;
-use OndrejBrejla\Eciovni\ItemImpl;
-use OndrejBrejla\Eciovni\DataBuilder;
-use OndrejBrejla\Eciovni\TaxImpl;
-
-
-
 class ApiPresenter extends BasePresenter{
-
-	/** @var CustomerModel @inject */
-	public $customerModel;
-
-	/** @var InvoiceModel @inject */
-	public $invoiceModel;
 
 	/** @var SendmailMailer @inject */
 	public $mailer;
@@ -39,35 +23,9 @@ class ApiPresenter extends BasePresenter{
 	/** @var MailReader @inject */
 	public $mailReader;
 
-	private $variableSymbol;
-
 	protected function startup() {
 		parent::startup();
-	}
-
-	protected function createComponentEciovni() {
-
-		$supplier = (object)$this->user->identity->data;
-		$supplierBuilder = new ParticipantBuilder($supplier->name, $supplier->street, $supplier->number, $supplier->city, $supplier->post_code);
-		$dic = empty($supplier->dic) ? '' : $supplier->dic;
-		$supplier = $supplierBuilder->setIn($supplier->ico)->setTin($dic)->setAccountNumber($supplier->account)->build();
-
-		$payment = $this->invoiceModel->getPaymentData($this->variableSymbol);
-		$customer = $this->customerModel->getCustomer($payment->customer_id);
-		$customerBuilder = new ParticipantBuilder($customer->name, $customer->street, $customer->number, $customer->city, $customer->post_code);
-		$customer = $customerBuilder->build();
-
-		$items = $this->invoiceModel->getItems($payment->variable_symbol_id);
-		$invoiceItems = array();
-		foreach($items as $item) {
-			$invoiceItems[] = new ItemImpl($item->name, $item->count, $item->price, TaxImpl::fromPercent(22));
-		}
-
-		$dataBuilder = new DataBuilder($payment->id, 'Faktura č.', $supplier, $customer, $payment->payment_date, $payment->issue_date, $invoiceItems);
-		$dataBuilder->setVariableSymbol($payment->variable_symbol_id)->setDateOfVatRevenueRecognition($payment->issue_date);
-		$data = $dataBuilder->build();
-
-		return new Eciovni($data);
+		if(!$this->user->isLoggedIn()) die('User is not logged in.');
 	}
 
 	public function renderCustomers() {
@@ -85,12 +43,20 @@ class ApiPresenter extends BasePresenter{
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
 
-	public function renderInvoices() {
+	public function renderInvoices($id) {
 		$response = array();
-		$request = $this->getHttpRequest()->getPost();
-		$vsId = $this->invoiceModel->insertInvoice($request);
-		if($request['send']) {
-			$this->sendMail($vsId, $request['customerId'], $request['type'] == 2);
+		$request = $this->getHttpRequest();
+		if($request->isMethod('GET')) {
+			$response = $this->invoiceModel->getInvoices();
+		} elseif($request->isMethod('POST')) {
+			$data = $request->getPost();
+			$vsId = $this->invoiceModel->insertInvoice($data);
+			if ($data['send'] == 'true') {
+				$this->sendMail($vsId, $data['customerId'], $data['type'] == 2);
+			}
+			$response = $this->invoiceModel->getInvoices();
+		} elseif($request->isMethod('DELETE')) {
+			$response = $this->invoiceModel->delete($id)->getInvoices();
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}

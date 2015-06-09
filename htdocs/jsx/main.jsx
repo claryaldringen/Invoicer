@@ -3,7 +3,7 @@ class InvoiceForm extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {key: 0, text: 'výzvu k platbě'};
+		this.state = {key: 0, text: 'výzvu k platbě', invoices: []};
 	}
 
 	handleChange(event) {
@@ -34,16 +34,16 @@ class InvoiceForm extends React.Component {
 		}
 	}
 
-	sendToServer(data) {
+	sendToServer(url, data, method) {
 		$.ajax({
-			url: 'api/invoices',
-			method: 'post',
+			url: url,
+			method: method,
 			dataType: 'json',
 			data: data,
 			success: (data) => {
 				var key = this.state.key;
 				key++;
-				this.setState({key: key});
+				this.setState({key: key, invoices: data});
 			},
 			error: (xhr, status, err) => {
 				console.log(err);
@@ -63,14 +63,40 @@ class InvoiceForm extends React.Component {
 		return data;
 	}
 
+	loadFromServer() {
+		$.ajax({
+			url: 'api/invoices',
+			method: 'get',
+			dataType: 'json',
+			success: (data) => {
+				this.setState({invoices: data});
+			},
+			error: (xhr, status, err) => {
+				console.log(err);
+			}
+		});
+	}
+
+	componentDidMount() {
+		this.loadFromServer();
+	}
+
 	handleSaveClick() {
-		this.sendToServer(this.getData());
+		if(confirm('Opravdu vytvořit?')) {
+			this.sendToServer('api/invoices', this.getData(), 'post');
+		}
 	}
 
 	handleSendClick() {
-		var data = this.getData();
-		data.send = true;
-		this.sendToServer(data);
+		if(confirm('Opravdu odeslat?')) {
+			var data = this.getData();
+			data.send = true;
+			this.sendToServer('api/invoices', data, 'post');
+		}
+	}
+
+	handleDelete(invoice) {
+		this.sendToServer('api/invoices/' + invoice.props.data.id, {}, 'delete');
 	}
 
 	render() {
@@ -81,8 +107,8 @@ class InvoiceForm extends React.Component {
 		var paymentDate = date.getDate() + '.' + (date.getMonth()+1) + '.' + date.getFullYear();
 
 		return(
-			<div key={this.state.key} className="invoice">
-				<table>
+			<div key={this.state.key} className="invoice" >
+				<table style={{float: 'left'}}>
 					<tr><th colSpan="2">Obecné</th></tr>
 					<tr>
 						<td>Typ: </td>
@@ -94,8 +120,8 @@ class InvoiceForm extends React.Component {
 						</td>
 					</tr>
 					<tr><td>Odběratel:</td><td><CustomerInput onChange={this.handleCustomerChange.bind(this)} source="api/customers" /></td></tr>
-					<tr><td>Datum vystavení: </td><td><input type="text" ref="issueDate" value={issueDate} /></td></tr>
-					<tr><td>Datum splatnosti: </td><td><input type="text" ref="paymentDate" value={paymentDate} /></td></tr>
+					<tr><td>Datum vystavení: </td><td><input type="text" ref="issueDate" defaultValue={issueDate} /></td></tr>
+					<tr><td>Datum splatnosti: </td><td><input type="text" ref="paymentDate" defaultValue={paymentDate} /></td></tr>
 					<tr><th colSpan="2">Položky</th></tr>
 					<tr><td colSpan="2"><ItemList onChange={this.handleItemListChange.bind(this)}/></td></tr>
 					<tr>
@@ -103,7 +129,11 @@ class InvoiceForm extends React.Component {
 						<td><button onClick={this.handleSendClick.bind(this)}>Uložit {this.state.text} a odeslat na {this.state.email}</button></td>
 					</tr>
 				</table>
-			</div>);
+				<div>
+					<InvoiceList data={this.state.invoices} onDelete={this.handleDelete.bind(this)} />
+				</div>
+			</div>
+			);
 	}
 }
 

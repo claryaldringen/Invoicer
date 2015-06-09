@@ -17,4 +17,10 @@ class HomepagePresenter extends BasePresenter
 		if(!$this->user->isLoggedIn()) $this->redirect('Sign:in');
 	}
 
+	public function renderInvoice($id) {
+		if($this->user->isLoggedIn()) {
+			$this->variableSymbol = $id;
+			$this['eciovni']->exportToPdf(new \mPDF('utf-8'));
+		}
+	}
 }
