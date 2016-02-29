@@ -1,33 +1,58 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: clary
- * Date: 24.5.15
- * Time: 15:53
+ * Presenter provides REST API.
  */
 
 namespace App\Presenters;
 
 use Nette,
 	Nette\Mail,
-	App\Model\MailReader,
+	App\Model\CustomerModel,
+	App\Model\InvoiceModel,
+	App\Mail\Reader,
 	Nette\Mail\SendmailMailer,
-	Nette\Latte;
+	Nette\Latte,
+	App\Mail\Sender,
+	App\Invoice\EciovniFactory;
 
 
 class ApiPresenter extends BasePresenter{
 
+	/** @var CustomerModel @inject */
+	public $customerModel;
+
+	/** @var InvoiceModel @inject */
+	public $invoiceModel;
+
 	/** @var SendmailMailer @inject */
 	public $mailer;
 
-	/** @var MailReader @inject */
+	/** @var Reader @inject */
 	public $mailReader;
 
-	protected function startup() {
-		parent::startup();
-		if(!$this->user->isLoggedIn()) die('User is not logged in.');
+	/** @var EciovniFactory @inject */
+	public $eciovniFactory;
+
+	/** @var Sender @inject */
+	public $mailSender;
+
+	private $variableSymbol;
+
+	/**
+	 * Returns new instance of Eciovni.
+	 *
+	 * @return \OndrejBrejla\Eciovni\Eciovni
+	 */
+	protected function createComponentEciovni() {
+		$payment = $this->invoiceModel->getPaymentData($this->variableSymbol);
+		$items = $this->invoiceModel->getItems($payment->variable_symbol_id);
+		$customer = $this->customerModel->getCustomer($payment->customer_id);
+		return $this->eciovniFactory->create($this->getUser(), $customer, $payment, $items);
 	}
 
+	/**
+	 * Handle of /api/customers call.
+	 */
 	public function renderCustomers() {
 		$request = $this->getHttpRequest();
 		if($request->isMethod('GET')) {
@@ -36,31 +61,32 @@ class ApiPresenter extends BasePresenter{
 			$id = $this->customerModel->insertCustomer($request->getPost());
 			$response = array('id' => $id);
 		} elseif($request->isMethod('PUT')) {
-			parse_str(file_get_contents("php://input"), $data);
-			$id = $this->customerModel->updateCustomer($data);
+			$id = $this->customerModel->updateCustomer($request->getPut());
 			$response = array('id' => $id);
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
 
-	public function renderInvoices($id) {
+	/**
+	 * Handle of /api/invoices call.
+	 *
+	 * @throws \App\Model\Exception
+	 */
+	public function renderInvoices() {
 		$response = array();
-		$request = $this->getHttpRequest();
-		if($request->isMethod('GET')) {
-			$response = $this->invoiceModel->getInvoices();
-		} elseif($request->isMethod('POST')) {
-			$data = $request->getPost();
-			$vsId = $this->invoiceModel->insertInvoice($data);
-			if ($data['send'] == 'true') {
-				$this->sendMail($vsId, $data['customerId'], $data['type'] == 2);
-			}
-			$response = $this->invoiceModel->getInvoices();
-		} elseif($request->isMethod('DELETE')) {
-			$response = $this->invoiceModel->delete($id)->getInvoices();
+		$request = $this->getHttpRequest()->getPost();
+		$vsId = $this->invoiceModel->insertInvoice($request);
+		if($request['send']) {
+			$this->mailSender->sendMail($vsId, $request['customerId'], $request['type'] == 2);
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
 
+	/**
+	 * Handle of /api/payment call.
+	 *
+	 * @throws \App\Model\Exception
+	 */
 	public function renderPayment() {
 		$response = date('Y-m-d H:i:s') . "\n";
 		$mails = $this->mailReader->read();
@@ -68,9 +94,9 @@ class ApiPresenter extends BasePresenter{
 			$payment = $this->mailReader->parse($mail);
 			if(!empty($payment)) {
 				$status = $this->invoiceModel->checkPayment($payment['vs'], $payment['price']);
-				if($status === true) {
-					$this->invoiceModel->invoiceFromVs($payment['vs'], true);
-					$this->sendMail($payment['vs'], null, true);
+				if($status === TRUE) {
+					$this->invoiceModel->invoiceFromVs($payment['vs'], TRUE);
+					$this->mailSender->sendMail($payment['vs'], NULL, TRUE);
 					$response .= "Variable symbol {$payment['vs']} with amount {$payment['price']} is OK.\n";
 				} else {
 					$response .= $status . "\n";
@@ -82,37 +108,4 @@ class ApiPresenter extends BasePresenter{
 		$this->sendResponse(new Nette\Application\Responses\TextResponse($response));
 	}
 
-	protected function sendMail($vsId, $customerId, $invoice = false) {
-		$mail = new Mail\Message();
-
-		if($invoice) {
-			$file = $this->context->parameters['appDir'] . '/presenters/templates/Api/invoice_mail.latte';
-			$payment = $this->invoiceModel->getPaymentData($vsId);
-			$subject = 'Faktura č. ' . $payment->id;
-			$this->variableSymbol = $vsId;
-			$pdfFile = $this->context->parameters['wwwDir'] . '/invoices/' . $payment->id . '.pdf';
-			$this['eciovni']->exportToPdf(new \mPDF('utf-8'), $pdfFile, 'F');
-			$mail->addAttachment($pdfFile);
-			$params = array('vsId' => $vsId);
-			$customerId = $payment->customer_id;
-		} else {
-			$file = $this->context->parameters['appDir'] . '/presenters/templates/Api/payment_call.latte';
-			$subject = 'Výzva k platbě';
-			$params = array(
-				'items' => $this->invoiceModel->getItems($vsId),
-				'account' => $this->user->identity->data['account'],
-				'vsId' => $vsId
-			);
-		}
-
-		$latte = new Latte\Engine();
-		$mail->setFrom($this->user->identity->data['email'], $this->user->identity->data['name']);
-		$customer = $this->customerModel->getCustomer($customerId);
-		$mail->addTo($customer->email, $customer->name);
-		$mail->setSubject($subject);
-		$mail->setHtmlBody($latte->renderToString($file, $params));
-
-		$this->mailer->send($mail);
-
-	}
 }

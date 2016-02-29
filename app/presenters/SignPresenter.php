@@ -31,8 +31,8 @@ class SignPresenter extends BasePresenter
 		return $form;
 	}
 
-	public function actionIn() {
-		//$this->userManager->add('fuckier', 'USZlTYCyiHTj6bWhF8XvklVrUKNt6e');
+	public function actionIn()
+	{
 	}
 
 	public function actionOut()

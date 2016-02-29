@@ -31,7 +31,8 @@
 		"nette/utils": "~2.3.0",
 		"latte/latte": "~2.3.0",
 		"tracy/tracy": "~2.3.0",
-		"ondrejbrejla/eciovni": "^1.1"
+		"ondrejbrejla/eciovni": "^1.1",
+		"dibi/dibi": "^3.0"
 	},
 	"require-dev": {
 		"nette/tester": "~1.3"

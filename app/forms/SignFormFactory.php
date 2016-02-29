@@ -20,6 +20,8 @@ class SignFormFactory extends Nette\Object
 
 
 	/**
+	 * Creates sign-in form.
+	 *
 	 * @return Form
 	 */
 	public function create()

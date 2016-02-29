@@ -14,6 +14,13 @@ application:
 	mapping:
 		*: App\*Module\Presenters\*Presenter
 
+database:
+	dsn:          "mysql:host=clary;dbname=318_invoicer"
+	user:         "root"
+	password:     ""
+	autowired:    true
+
+
 
 session:
 	expiration: 14 days
@@ -21,8 +28,11 @@ session:
 services:
 	- App\Model\UserManager
 	- App\Forms\SignFormFactory
+	- App\Invoice\EciovniFactory
 	- App\Model\CustomerModel
 	- App\Model\InvoiceModel
-	- App\Model\MailReader
+	- App\Mail\Reader
+	- App\Mail\Sender
 	- Nette\Mail\SendmailMailer
 	router: App\RouterFactory::createRouter
+	http.requestFactory: App\Http\RequestFactory

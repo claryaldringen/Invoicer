@@ -1,16 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: clary
- * Date: 29.5.15
- * Time: 6:00
- */
 
-namespace App\Model;
+namespace App\Mail;
 
 use Nette;
 
-class MailReader {
+class Reader {
 
 	/** @var Nette\Database\Context  */
 	private $db;
@@ -22,6 +16,11 @@ class MailReader {
 		$this->db = $database;
 	}
 
+	/**
+	 * Returns array of mails.
+	 *
+	 * @return array
+	 */
 	public function read() {
 		$this->conn = imap_open('{freetech.cz/notls}', 'invoice@freetech.cz', 'invoice');
 		$mails = array();
@@ -40,6 +39,12 @@ class MailReader {
 		return $mails;
 	}
 
+	/**
+	 * Parses mail and search for payment. Return variable symbol and price.
+	 *
+	 * @param $mail
+	 * @return array
+	 */
 	public function parse($mail) {
 		if(strpos($mail['head']->Subject, 'Fio banka - prijem na konte') !== false){
 			$lines = explode("\r\n", $mail['body']);

@@ -4,19 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "32ceee6bf26a2c1d824dc02964d417f2",
+    "hash": "68118e80abfd90adade5187894263d0e",
+    "content-hash": "53f49989ecc562a2da995c7488a0edb1",
     "packages": [
         {
             "name": "OndrejBrejla/Eciovni",
             "version": "1.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/OndrejBrejla/Eciovni.git",
+                "url": "https://github.com/obrejla/Eciovni.git",
                 "reference": "dc338c7732d400a91eeb38bed7e1a5f0303f875d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OndrejBrejla/Eciovni/zipball/dc338c7732d400a91eeb38bed7e1a5f0303f875d",
+                "url": "https://api.github.com/repos/obrejla/Eciovni/zipball/dc338c7732d400a91eeb38bed7e1a5f0303f875d",
                 "reference": "dc338c7732d400a91eeb38bed7e1a5f0303f875d",
                 "shasum": ""
             },
@@ -53,40 +54,21 @@
             "time": "2014-07-13 09:27:09"
         },
         {
-            "name": "dg/adminer-custom",
-            "version": "v1.6.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dg/adminer-custom.git",
-                "reference": "88a7d2ac6f6050e4365f11b8a430a85ed26df4c3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dg/adminer-custom/zipball/88a7d2ac6f6050e4365f11b8a430a85ed26df4c3",
-                "reference": "88a7d2ac6f6050e4365f11b8a430a85ed26df4c3",
-                "shasum": ""
-            },
-            "type": "project",
-            "notification-url": "https://packagist.org/downloads/",
-            "description": "Customization for the best database management tool written in PHP, Adminer",
-            "time": "2015-03-14 18:56:17"
-        },
-        {
             "name": "dibi/dibi",
-            "version": "v2.3.2",
+            "version": "v3.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dg/dibi.git",
-                "reference": "7762da1bbbcbffc97515cff47b118be63244834c"
+                "reference": "352a683ec18d026b8010ac842c6fcb960b7e0c33"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/dibi/zipball/7762da1bbbcbffc97515cff47b118be63244834c",
-                "reference": "7762da1bbbcbffc97515cff47b118be63244834c",
+                "url": "https://api.github.com/repos/dg/dibi/zipball/352a683ec18d026b8010ac842c6fcb960b7e0c33",
+                "reference": "352a683ec18d026b8010ac842c6fcb960b7e0c33",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2.0"
+                "php": ">=5.4.4"
             },
             "replace": {
                 "dg/dibi": "self.version"
@@ -98,12 +80,15 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.3-dev"
+                    "dev-master": "3.0-dev"
                 }
             },
             "autoload": {
                 "classmap": [
-                    "dibi/"
+                    "src/"
+                ],
+                "files": [
+                    "src/loader.php"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -115,11 +100,11 @@
             "authors": [
                 {
                     "name": "David Grudl",
-                    "homepage": "http://davidgrudl.com"
+                    "homepage": "https://davidgrudl.com"
                 }
             ],
             "description": "Dibi is Database Abstraction Library for PHP",
-            "homepage": "http://dibiphp.com",
+            "homepage": "https://dibiphp.com",
             "keywords": [
                 "access",
                 "database",
@@ -130,9 +115,10 @@
                 "oracle",
                 "pdo",
                 "postgresql",
-                "sqlite"
+                "sqlite",
+                "sqlsrv"
             ],
-            "time": "2015-04-18 14:26:53"
+            "time": "2016-02-21 01:07:19"
         },
         {
             "name": "latte/latte",
