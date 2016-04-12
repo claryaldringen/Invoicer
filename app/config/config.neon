@@ -15,9 +15,9 @@ application:
 		*: App\*Module\Presenters\*Presenter
 
 database:
-	dsn:          "mysql:host=clary;dbname=318_invoicer"
+	dsn:          "mysql:host=localhost;dbname=318_invoicer"
 	user:         "root"
-	password:     ""
+	password:     "fuck"
 	autowired:    true
 
 
@@ -34,5 +34,6 @@ services:
 	- App\Mail\Reader
 	- App\Mail\Sender
 	- Nette\Mail\SendmailMailer
+	namer: App\File\Namer(%appDir%, %wwwDir%)
 	router: App\RouterFactory::createRouter
 	http.requestFactory: App\Http\RequestFactory

@@ -44,7 +44,7 @@ abstract class BasePresenter extends Nette\Application\UI\Presenter
 		$items = $this->invoiceModel->getItems($payment->variable_symbol_id);
 		$invoiceItems = array();
 		foreach($items as $item) {
-			$invoiceItems[] = new ItemImpl($item->name, $item->count, $item->price, TaxImpl::fromPercent(22));
+			$invoiceItems[] = new ItemImpl($item->name, $item->count, $item->price, TaxImpl::fromPercent(0), FALSE);
 		}
 
 		$dataBuilder = new DataBuilder($payment->id, 'Faktura č.', $supplier, $customer, $payment->payment_date, $payment->issue_date, $invoiceItems);

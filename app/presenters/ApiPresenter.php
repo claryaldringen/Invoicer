@@ -36,7 +36,7 @@ class ApiPresenter extends BasePresenter{
 	/** @var Sender @inject */
 	public $mailSender;
 
-	private $variableSymbol;
+	protected $variableSymbol;
 
 	/**
 	 * Returns new instance of Eciovni.
@@ -72,12 +72,20 @@ class ApiPresenter extends BasePresenter{
 	 *
 	 * @throws \App\Model\Exception
 	 */
-	public function renderInvoices() {
+	public function renderInvoices($id) {
 		$response = array();
-		$request = $this->getHttpRequest()->getPost();
-		$vsId = $this->invoiceModel->insertInvoice($request);
-		if($request['send']) {
-			$this->mailSender->sendMail($vsId, $request['customerId'], $request['type'] == 2);
+		$request = $this->getHttpRequest();
+		if($request->isMethod('GET')) {
+			$response = $this->invoiceModel->getInvoices();
+		} elseif($request->isMethod('POST')) {
+			$data = $request->getPost();
+			$vsId = $this->invoiceModel->insertInvoice($data);
+			if ($data['send'] == 'true') {
+				$this->mailSender->sendMail($vsId, $data['customerId'], $data['type'] == 2);
+			}
+			$response = $this->invoiceModel->getInvoices();
+		} elseif($request->isMethod('DELETE')) {
+			$response = $this->invoiceModel->delete($id)->getInvoices();
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}

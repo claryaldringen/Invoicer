@@ -9,6 +9,9 @@ class Request extends \Nette\Http\Request
 	/** @var mixed */
 	protected $put = NULL;
 
+	/** @var mixed */
+	protected $delete = NULL;
+
 	/**
 	 * Returns variable provided to the script via PUT method.
 	 * If no key is passed, returns the entire array.
@@ -31,4 +34,5 @@ class Request extends \Nette\Http\Request
 		}
 		return $default;
 	}
+	
 }

@@ -3,25 +3,52 @@
 namespace App\Mail;
 
 
+use App\File\Namer;
+use App\Model\CustomerModel;
+use App\Model\InvoiceModel;
 use Latte\Engine;
+use Nette\Mail\IMailer;
 use Nette\Mail\Message;
+use Nette\Mail\SendmailMailer;
+use Nette\Security\User;
 
 class Sender
 {
+	/** @var InvoiceModel */
+	protected $invoiceModel;
+
+	/** @var User */
+	protected $user;
+
+	/** @var CustomerModel */
+	protected $customerModel;
+
+	/** @var IMailer */
+	protected $mailer;
+
+	/** @var Namer */
+	protected $namer;
+
+	public function __construct(User $user, InvoiceModel $invoiceModel, CustomerModel $customerModel, SendmailMailer $mailer, Namer $namer) {
+		$this->invoiceModel = $invoiceModel;
+		$this->user = $user;
+		$this->customerModel = $customerModel;
+		$this->mailer = $mailer;
+		$this->namer = $namer;
+	}
+
 	public function sendMail($vsId, $customerId, $invoice = FALSE) {
 		$mail = new Message();
 
 		if($invoice) {
-			$file = $this->context->parameters['appDir'] . '/presenters/templates/Api/invoice_mail.latte';
 			$payment = $this->invoiceModel->getPaymentData($vsId);
 			$subject = 'Faktura č. ' . $payment->id;
-			$pdfFile = $this->context->parameters['wwwDir'] . '/invoices/' . $payment->id . '.pdf';
+			$pdfFile = $this->namer->getPdfFile($payment->id);
 			$this['eciovni']->exportToPdf(new \mPDF('utf-8'), $pdfFile, 'F');
 			$mail->addAttachment($pdfFile);
 			$params = array('vsId' => $vsId);
 			$customerId = $payment->customer_id;
 		} else {
-			$file = $this->context->parameters['appDir'] . '/presenters/templates/Api/payment_call.latte';
 			$subject = 'Výzva k platbě';
 			$params = array(
 				'items' => $this->invoiceModel->getItems($vsId),
@@ -35,7 +62,7 @@ class Sender
 		$customer = $this->customerModel->getCustomer($customerId);
 		$mail->addTo($customer->email, $customer->name);
 		$mail->setSubject($subject);
-		$mail->setHtmlBody($latte->renderToString($file, $params));
+		$mail->setHtmlBody($latte->renderToString($this->namer->getLatteFileName($invoice), $params));
 
 		$this->mailer->send($mail);
 
