@@ -11,6 +11,7 @@ use Nette\Mail\IMailer;
 use Nette\Mail\Message;
 use Nette\Mail\SendmailMailer;
 use Nette\Security\User;
+use OndrejBrejla\Eciovni\Eciovni;
 
 class Sender
 {
@@ -29,12 +30,20 @@ class Sender
 	/** @var Namer */
 	protected $namer;
 
+	/** @var Eciovni */
+	protected $invoice;
+
 	public function __construct(User $user, InvoiceModel $invoiceModel, CustomerModel $customerModel, SendmailMailer $mailer, Namer $namer) {
 		$this->invoiceModel = $invoiceModel;
 		$this->user = $user;
 		$this->customerModel = $customerModel;
 		$this->mailer = $mailer;
 		$this->namer = $namer;
+	}
+
+	public function setInvoice(Eciovni $invoice) {
+		$this->invoice = $invoice;
+		return $this;
 	}
 
 	public function sendMail($vsId, $customerId, $invoice = FALSE) {
@@ -44,7 +53,7 @@ class Sender
 			$payment = $this->invoiceModel->getPaymentData($vsId);
 			$subject = 'Faktura č. ' . $payment->id;
 			$pdfFile = $this->namer->getPdfFile($payment->id);
-			$this['eciovni']->exportToPdf(new \mPDF('utf-8'), $pdfFile, 'F');
+			$this->invoice->exportToPdf(new \mPDF('utf-8'), $pdfFile, 'F');
 			$mail->addAttachment($pdfFile);
 			$params = array('vsId' => $vsId);
 			$customerId = $payment->customer_id;

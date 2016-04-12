@@ -2,8 +2,8 @@
 
 namespace App\Invoice;
 
-
-use Dibi\Row;
+use Nette\Database\Row;
+use Nette\Security\User;
 use OndrejBrejla\Eciovni\Eciovni;
 use OndrejBrejla\Eciovni\ParticipantBuilder;
 use OndrejBrejla\Eciovni\ItemImpl;

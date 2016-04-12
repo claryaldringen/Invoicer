@@ -1,29 +1,29 @@
 Dobrý den,<br>
 posílám Vám vyúčtování za následující služby:<br>
-
+<br>
 <table>
 	<tr>
-		<th>Počet</th>
-		<th>Položka</th>
-		<th>Cena za položku</th>
-		<th>Cena za položky</th>
+		<th>Počet&nbsp;&nbsp;</th>
+		<th>Položka&nbsp;</th>
+		<th>&nbsp;Cena za položku&nbsp;</th>
+		<th>&nbsp;Cena za položky</th>
 	</tr>
 	{var $total = 0}
 {foreach $items as $item}
 	<tr>
 		<td>{$item->count}</td>
 		<td>{$item->name}</td>
-		<td>{$item->price}</td>
-		<td>{$item->count*$item->price}</td>
+		<td style="text-align: center;">{$item->price} Kč</td>
+		<td style="text-align: right;">{$item->count*$item->price} Kč</td>
 		{? $total += $item->count*$item->price ?}
 	</tr>
 {/foreach}
 	<tr>
-		<th colspan="3">Celková cena:</th>
-		<th>{$total}</th>
+		<th colspan="3" style="text-align: left;">Celková cena:</th>
+		<th style="text-align: right">{$total} Kč</th>
 	</tr>
 </table>
-
+<br><br>
 Částku <b>{$total} Kč</b> můžete poslat bankovním převodem na účet <b>{$account}</b> s variabilním symbolem <b>{$vsId}</b>.
 Po obdržení platby Vám na tuto emailovou adresu příjde faktura.<br><br>
 
