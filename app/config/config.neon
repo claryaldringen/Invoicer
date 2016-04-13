@@ -10,17 +10,10 @@ php:
 
 
 application:
+	#catchExceptions: true
 	errorPresenter: Error
 	mapping:
 		*: App\*Module\Presenters\*Presenter
-
-database:
-	dsn:          "mysql:host=localhost;dbname=318_invoicer"
-	user:         "root"
-	password:     "fuck"
-	autowired:    true
-
-
 
 session:
 	expiration: 14 days
@@ -37,3 +30,6 @@ services:
 	namer: App\File\Namer(%appDir%, %wwwDir%)
 	router: App\RouterFactory::createRouter
 	http.requestFactory: App\Http\RequestFactory
+
+tracy:
+	email: info@freetech.cz
