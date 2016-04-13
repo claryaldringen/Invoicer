@@ -81,8 +81,11 @@ class ApiPresenter extends BasePresenter{
 			$data = $request->getPost();
 			$vsId = $this->invoiceModel->insertInvoice($data);
 			if ($data['send'] == 'true') {
-				$this->variableSymbol = $vsId;
-				$this->mailSender->setInvoice($this['eciovni'])->sendMail($vsId, $data['customerId'], $data['type'] == 2);
+				if($data['type'] == 2) {
+					$this->variableSymbol = $vsId;
+					$this->mailSender->setInvoice($this['eciovni']);
+				}
+				$this->mailSender->sendMail($vsId, $data['customerId'], $data['type'] == 2);
 			}
 			$response = $this->invoiceModel->getInvoices();
 		} elseif($request->isMethod('DELETE')) {
