@@ -56,7 +56,7 @@ class Reader {
 					$vs = $matches[1];
 					continue;
 				}
-				preg_match("/=C4=8C=C3=A1stka: ([0-9\.\,\s]+)/", $line, $matches);
+				preg_match("/=C8=E1stka: ([0-9\.\,\s]+)/", $line, $matches);
 				if(isset($matches[1])) {
 					$price = floatval(str_replace(array(',', ' '), array('.',''), $matches[1]));
 					continue;

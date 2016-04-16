@@ -108,6 +108,8 @@ class ApiPresenter extends BasePresenter{
 				$status = $this->invoiceModel->checkPayment($payment['vs'], $payment['price']);
 				if($status === TRUE) {
 					$this->invoiceModel->invoiceFromVs($payment['vs'], TRUE);
+					$this->variableSymbol = $payment['vs'];
+					$this->mailSender->setInvoice($this['eciovni']);
 					$this->mailSender->sendMail($payment['vs'], NULL, TRUE);
 					$response .= "Variable symbol {$payment['vs']} with amount {$payment['price']} is OK.\n";
 				} else {
