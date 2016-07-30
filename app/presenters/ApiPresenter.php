@@ -87,7 +87,8 @@ class ApiPresenter extends BasePresenter{
 				}
 				$this->mailSender->sendMail($vsId, $data['customerId'], $data['type'] == 2);
 			}
-			$response = $this->invoiceModel->getInvoices();
+			$response['invoices'] = $this->invoiceModel->getInvoices();
+			$response['preinvoices'] = $this->invoiceModel->getPreInvoices();
 		} elseif($request->isMethod('DELETE')) {
 			$response['invoices'] = $this->invoiceModel->delete($id)->getInvoices();
 			$response['preinvoices'] = $this->invoiceModel->getPreInvoices();
