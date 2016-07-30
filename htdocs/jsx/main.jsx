@@ -3,7 +3,7 @@ class InvoiceForm extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {key: 0, text: 'výzvu k platbě', invoices: []};
+		this.state = {key: 0, text: 'výzvu k platbě', invoices: [], preinvoices: []};
 	}
 
 	handleChange(event) {
@@ -43,7 +43,7 @@ class InvoiceForm extends React.Component {
 			success: (data) => {
 				var key = this.state.key;
 				key++;
-				this.setState({key: key, invoices: data});
+				this.setState({key: key, invoices: data.invoices, preinvoices: data.preinvoices});
 			},
 			error: (xhr, status, err) => {
 				console.log(err);
@@ -63,7 +63,7 @@ class InvoiceForm extends React.Component {
 		return data;
 	}
 
-	loadFromServer() {
+	loadInvoicesFromServer() {
 		$.ajax({
 			url: 'api/invoices',
 			method: 'get',
@@ -77,8 +77,23 @@ class InvoiceForm extends React.Component {
 		});
 	}
 
+	loadPreInvoicesFromServer() {
+		$.ajax({
+			url: 'api/preinvoices',
+			method: 'get',
+			dataType: 'json',
+			success: (data) => {
+				this.setState({preinvoices: data});
+			},
+			error: (xhr, status, err) => {
+				console.log(err);
+			}
+		});
+	}
+
 	componentDidMount() {
-		this.loadFromServer();
+		this.loadInvoicesFromServer();
+		this.loadPreInvoicesFromServer();
 	}
 
 	handleSaveClick() {
@@ -96,7 +111,8 @@ class InvoiceForm extends React.Component {
 	}
 
 	handleDelete(invoice) {
-		this.sendToServer('api/invoices/' + invoice.props.data.id, {}, 'delete');
+		var id = invoice.props.data.variable_symbol_id ? invoice.props.data.variable_symbol_id : invoice.props.data.id;
+		this.sendToServer('api/invoices/' + id, {}, 'delete');
 	}
 
 	render() {
@@ -107,30 +123,56 @@ class InvoiceForm extends React.Component {
 		var paymentDate = date.getDate() + '.' + (date.getMonth()+1) + '.' + date.getFullYear();
 
 		return(
-			<div key={this.state.key} className="invoice" >
-				<table style={{float: 'left'}}>
-					<tr><th colSpan="2">Obecné</th></tr>
-					<tr>
-						<td>Typ: </td>
-						<td>
-							<select onChange={this.handleChange.bind(this)} ref="type">
-								<option value="1">Výzva k platbě</option>
-								<option value="2">Faktura</option>
-							</select>
-						</td>
-					</tr>
-					<tr><td>Odběratel:</td><td><CustomerInput onChange={this.handleCustomerChange.bind(this)} source="api/customers" /></td></tr>
-					<tr><td>Datum vystavení: </td><td><input type="text" ref="issueDate" defaultValue={issueDate} /></td></tr>
-					<tr><td>Datum splatnosti: </td><td><input type="text" ref="paymentDate" defaultValue={paymentDate} /></td></tr>
-					<tr><th colSpan="2">Položky</th></tr>
-					<tr><td colSpan="2"><ItemList onChange={this.handleItemListChange.bind(this)}/></td></tr>
-					<tr>
-						<td><button onClick={this.handleSaveClick.bind(this)}>Uložit {this.state.text}</button></td>
-						<td><button onClick={this.handleSendClick.bind(this)}>Uložit {this.state.text} a odeslat na {this.state.email}</button></td>
-					</tr>
-				</table>
-				<div>
-					<InvoiceList data={this.state.invoices} onDelete={this.handleDelete.bind(this)} />
+			<div key={this.state.key} className="invoice container-fluid" >
+				<div className="col-lg-6 col-md-12">
+					<div className="panel panel-primary">
+						<div className="panel-heading">Nová faktura/výzva k platbě</div>
+						<div className="panel-body">
+							<table className="form-group table">
+								<thead className="thead-default">
+									<tr><th colSpan="2">Obecné</th></tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>Typ: </td>
+										<td>
+											<div className="col-md-10">
+												<select className="form-control" onChange={this.handleChange.bind(this)} ref="type">
+													<option value="1">Výzva k platbě</option>
+													<option value="2">Faktura</option>
+												</select>
+											</div>
+										</td>
+									</tr>
+									<tr><td>Odběratel:</td><td><CustomerInput onChange={this.handleCustomerChange.bind(this)} source="api/customers" /></td></tr>
+									<tr><td>Datum vystavení: </td><td><div className="col-md-10"><input className="form-control" type="text" ref="issueDate" defaultValue={issueDate} /></div></td></tr>
+									<tr><td>Datum splatnosti: </td><td><div className="col-md-10"><input className="form-control" type="text" ref="paymentDate" defaultValue={paymentDate} /></div></td></tr>
+									<tr><th colSpan="2">Položky</th></tr>
+									<tr><td colSpan="2"><ItemList onChange={this.handleItemListChange.bind(this)}/></td></tr>
+									<tr>
+										<td><button className="btn btn-primary" onClick={this.handleSaveClick.bind(this)}>Uložit {this.state.text}</button></td>
+										<td><button className="btn btn-danger" onClick={this.handleSendClick.bind(this)}>Uložit {this.state.text} a odeslat na {this.state.email}</button></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div style={{float: 'right'}} className="col-md-6">
+					<div className="panel panel-success">
+						<div className="panel-heading">Vystavené faktury</div>
+						<div className="panel-body">
+							<InvoiceList data={this.state.invoices} invoice={true} onDelete={this.handleDelete.bind(this)} />
+						</div>
+					</div>
+				</div>
+				<div style={{float: 'left'}} className="col-md-6">
+					<div className="panel panel-danger">
+						<div className="panel-heading">Nezaplacené výzvy k platbě</div>
+						<div className="panel-body">
+							<InvoiceList data={this.state.preinvoices} onDelete={this.handleDelete.bind(this)} />
+						</div>
+					</div>
 				</div>
 			</div>
 			);

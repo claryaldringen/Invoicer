@@ -96,16 +96,90 @@ class InvoiceModel {
 			FROM invoice i
 			JOIN variable_symbol vs ON vs.id = i.variable_symbol_id
 			JOIN customer c ON c.id=vs.customer_id
+			WHERE vs.status='active'
 			ORDER BY id DESC";
-		return $this->db->query($sql)->fetchAll();
+		$rows = $this->db->query($sql)->fetchAll();
+
+		foreach($rows as &$row) {
+			$row['items'] = $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $row['variable_symbol_id'])->fetchAll();
+		}
+
+		return $rows;
 	}
 
-	public function delete($id) {
-		$this->db->query("DELETE FROM invoice WHERE id=?", $id);
-		$row = $this->db->query("SELECT COUNT(*) AS cnt FROM invoice")->fetch();
-		$count = $row['cnt'];
-		$this->db->query("ALTER TABLE invoice AUTO_INCREMENT=?", ++$count);
+	public function getPreInvoices() {
+		$sql = "SELECT vs.id,vs.issue_date,vs.payment_date,c.name,c.street,c.number,c.post_code,c.city,c.ico,c.dic
+			FROM variable_symbol vs
+			JOIN customer c ON c.id=vs.customer_id
+			LEFT JOIN invoice i ON vs.id = i.variable_symbol_id
+			WHERE i.id IS NULL AND vs.status='active'
+			ORDER BY vs.id DESC";
+
+		$rows = $this->db->query($sql)->fetchAll();
+
+		foreach($rows as &$row) {
+			$row['items'] = $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $row['id'])->fetchAll();
+		}
+
+		return $rows;
+	}
+
+	public function delete($variableSymbolId) {
+		$this->db->beginTransaction();
+		try {
+			$result = $this->db->query("DELETE FROM invoice WHERE variable_symbol_id=?", $variableSymbolId);
+			if ($result->getRowCount()) {
+				$row = $this->db->query("SELECT COUNT(*) AS cnt FROM invoice")->fetch();
+				$count = $row['cnt'];
+				$this->db->query("ALTER TABLE invoice AUTO_INCREMENT=?", ++$count);
+			}
+			$this->db->query("UPDATE variable_symbol SET status=? WHERE id=?", 'deleted', $variableSymbolId);
+		}catch(\Exception $ex) {
+			$this->db->rollBack();
+			throw $ex;
+		}
+		$this->db->commit();
 		return $this;
+	}
+
+	public function getCyclicPayments() {
+		$result = [];
+
+		$sql = "SELECT * FROM cyclic_payments cp
+			JOIN variable_symbol vs ON vs.id=cp.variable_symbol_id
+			WHERE next_check < NOW();";
+
+		$this->db->beginTransaction();
+		try {
+			$rows = $this->db->query($sql)->fetchAll();
+			foreach ($rows as $row) {
+				$insert = [
+					'user_id' => $row['user_id'],
+					'customer_id' => $row['customer_id'],
+					'issue_date' => date('Y-m-d H:i:s'),
+					'payment_date' => date('Y-m-d H:i:s', time() + 3600 * 24 * 14),
+					'action_id' => $row['action_id'],
+					'params' => $row['params'],
+				];
+				$this->db->query("INSERT INTO variable_symbol", $insert);
+				$newVs = $this->db->getInsertId();
+
+				$items = $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $row['variable_symbol_id'])->fetchAll();
+				foreach ($items as &$item) {
+					unset($item['id']);
+					$item['variable_symbol_id'] = $newVs;
+				}
+				$this->db->query("INSERT INTO item", $items);
+
+				$this->db->query("UPDATE cyclic_payments SET next_check=? WHERE variable_symbol_id=?", date('Y-m-d H:i:s', strtotime($row['next_check']) + 3600 * 24 * 365), $row['variable_symbol_id']);
+				$result[] = ['vs' => $newVs, 'customer_id' => $row['customer_id']];
+			}
+		} catch(\Exception $ex) {
+			$this->db->rollBack();
+			throw $ex;
+		}
+		$this->db->commit();
+		return $result;
 	}
 
 }

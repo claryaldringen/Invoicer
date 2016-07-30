@@ -36,10 +36,10 @@ class Item extends React.Component {
 
 		return(
 			<tr onFocus={this.handleFocus.bind(this)} onChange={this.handleChange.bind(this)}>
-				<td><input type="number" onChange={this.handleCountChange.bind(this)} value={this.state.count} /></td>
-				<td><input type="text" onChange={this.handleNameChange.bind(this)} value={item.name} /></td>
-				<td><input type="number" onChange={this.handlePriceChange.bind(this)} value={this.state.price} /></td>
-				<td><input type="number" value={item.price * item.count} /></td>
+				<td><input type="number" className="form-control" style={{width: 72}} onChange={this.handleCountChange.bind(this)} value={this.state.count} /></td>
+				<td><input type="text" className="form-control" style={{width: 384}} onChange={this.handleNameChange.bind(this)} value={item.name} /></td>
+				<td><input type="number" className="form-control" style={{width: 96}} onChange={this.handlePriceChange.bind(this)} value={this.state.price} /></td>
+				<td><input type="number" className="form-control" style={{width: 128}} value={item.price * item.count} /></td>
 			</tr>
 		);
 	}

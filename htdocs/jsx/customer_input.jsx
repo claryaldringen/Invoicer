@@ -86,12 +86,12 @@ class CustomerInput extends React.Component {
 		}
 
 		return(
-			<div>
-				<select onChange={this.handleChange.bind(this)} value={this.state.customerId}>
+			<div className="col-md-10">
+				<select className="form-control" onChange={this.handleChange.bind(this)} value={this.state.customerId}>
 					{options}
 					<option value="0" key={this.state.customers.length}>Nový zákazník</option>
 				</select>
-				<button style={buttonStyle} onClick={this.handleClick.bind(this)}>{text}</button>
+				<button style={buttonStyle} className="btn btn-default" onClick={this.handleClick.bind(this)}>{text}</button>
 				{editForm}
 			</div>
 		);

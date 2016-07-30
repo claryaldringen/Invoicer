@@ -89,7 +89,22 @@ class ApiPresenter extends BasePresenter{
 			}
 			$response = $this->invoiceModel->getInvoices();
 		} elseif($request->isMethod('DELETE')) {
-			$response = $this->invoiceModel->delete($id)->getInvoices();
+			$response['invoices'] = $this->invoiceModel->delete($id)->getInvoices();
+			$response['preinvoices'] = $this->invoiceModel->getPreInvoices();
+		}
+		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
+	}
+
+	/**
+	 * Handle of /api/invoices call.
+	 *
+	 * @throws \App\Model\Exception
+	 */
+	public function renderPreInvoices($id) {
+		$response = array();
+		$request = $this->getHttpRequest();
+		if($request->isMethod('GET')) {
+			$response = $this->invoiceModel->getPreInvoices();
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
@@ -120,6 +135,15 @@ class ApiPresenter extends BasePresenter{
 			}
 		}
 		$this->sendResponse(new Nette\Application\Responses\TextResponse($response));
+	}
+
+	public function renderCyclicPayments() {
+		$response = ['datetime' => date('Y-m-d H:i:s')];
+		$response['payments'] = $this->invoiceModel->getCyclicPayments();
+		foreach($response['payments'] as $payment) {
+			$this->mailSender->sendMail($payment['vs'], $payment['customer_id']);
+		}
+		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
 
 }

@@ -8,11 +8,11 @@ class InvoiceList extends React.Component {
 	render() {
 
 		var invoices = this.props.data.map(function(invoice, key) {
-			return(<Invoice key={key} index={key} data={invoice} onDelete={this.handleDelete.bind(this)} />);
+			return(<Invoice key={key} index={key} data={invoice} invoice={this.props.invoice} onDelete={this.handleDelete.bind(this)} />);
 		}.bind(this));
 
 		return (
-			<table>
+			<table className="table table-striped table-bordered">
 				<tbody>
 					{invoices}
 				</tbody>

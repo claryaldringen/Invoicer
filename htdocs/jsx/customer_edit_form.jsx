@@ -37,16 +37,15 @@ class CustomerEditForm extends React.Component {
 		return(
 			<form onSubmit={this.handleSubmit.bind(this)}>
 			<table>
-				<tr><td>Jméno:</td><td><input type="text" ref="name" defaultValue={customer.name} /></td></tr>
-				<tr><td>
-					Ulice:</td><td><input type="text" ref="street" defaultValue={customer.street} />
-					č.p.:<input type="text" ref="number" defaultValue={customer.number} /></td></tr>
-				<tr><td>Město:</td><td><input type="text" ref="city" defaultValue={customer.city}/></td></tr>
-				<tr><td>PSČ:</td><td><input type="text" ref="post_code" defaultValue={customer.post_code} /></td></tr>
-				<tr><td>IČ:</td><td><input type="text" ref="ico" defaultValue={customer.ico} /></td></tr>
-				<tr><td>DIČ:</td><td><input type="text" ref="dic" defaultValue={customer.dic} /></td></tr>
-				<tr><td>Email:</td><td><input type="email" ref="email" defaultValue={customer.email} /></td></tr>
-				<tr><td colSpan="2"><input type="submit" value="Uložit zákazníka" /></td></tr>
+				<tr><td>Jméno:</td><td><input className="form-control" type="text" ref="name" defaultValue={customer.name} /></td></tr>
+				<tr><td>Ulice:</td><td><input type="text" className="form-control" ref="street" defaultValue={customer.street} /></td></tr>
+				<tr><td>Č.p.:</td><td><input type="text" className="form-control" ref="number" defaultValue={customer.number} /></td></tr>
+				<tr><td>Město:</td><td><input type="text" className="form-control" ref="city" defaultValue={customer.city}/></td></tr>
+				<tr><td>PSČ:</td><td><input type="text" className="form-control" ref="post_code" defaultValue={customer.post_code} /></td></tr>
+				<tr><td>IČ:</td><td><input type="text" className="form-control" ref="ico" defaultValue={customer.ico} /></td></tr>
+				<tr><td>DIČ:</td><td><input type="text" className="form-control" ref="dic" defaultValue={customer.dic} /></td></tr>
+				<tr><td>Email:</td><td><input type="email" className="form-control" ref="email" defaultValue={customer.email} /></td></tr>
+				<tr><td colSpan="2"><input type="submit" className="btn btn-primary" value="Uložit zákazníka" /></td></tr>
 			</table>
 			</form>
 		);

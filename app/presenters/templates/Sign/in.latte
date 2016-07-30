@@ -1,7 +1,17 @@
 {block content}
-	<h1 n:block=title>Sign in</h1>
-	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
-	{control signInForm}
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<div class="panel panel-default">
+					<div class="panel-heading" n:block=title>Sign in</div>
+					<div class="panel-body form-group">
+						<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+						{control signInForm}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {/block}
 
 {block head}

@@ -1,8 +1,7 @@
 body {
-	font-size: 15px;
-	line-height: 1.6;
-	color: #333;
-	background: white;
+	margin-top: 10px;
+	background: url('/images/free-wallpaper-22.jpg');
+	background-attachment: fixed;
 }
 
 h1 {
