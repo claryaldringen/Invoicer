@@ -70,6 +70,7 @@ class Sender
 		$mail->setFrom($this->user->identity->data['email'], $this->user->identity->data['name']);
 		$customer = $this->customerModel->getCustomer($customerId);
 		$mail->addTo($customer->email, $customer->name);
+		$mail->addBcc('info@freetech.cz');
 		$mail->setSubject($subject);
 		$mail->setHtmlBody($latte->renderToString($this->namer->getLatteFileName($invoice), $params));
 
