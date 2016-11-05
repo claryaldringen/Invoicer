@@ -84,6 +84,7 @@ class InvoiceModel {
 			GROUP BY vs.id";
 
 			$this->unpaired = $this->db->query($sql)->fetchPairs();
+
 		}
 
 		if(!isset($this->unpaired[$vsId])) return "Undefined variable symbol $vsId.";

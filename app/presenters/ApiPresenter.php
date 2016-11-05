@@ -6,12 +6,10 @@
 namespace App\Presenters;
 
 use Nette,
-	Nette\Mail,
 	App\Model\CustomerModel,
 	App\Model\InvoiceModel,
 	App\Mail\Reader,
 	Nette\Mail\SendmailMailer,
-	Nette\Latte,
 	App\Mail\Sender,
 	App\Invoice\EciovniFactory;
 
