@@ -64,7 +64,7 @@ class InvoiceModel {
 	}
 
 	public function getPaymentData($vsId) {
-		$sql = "SELECT vs.customer_id,issue_date,payment_date,i.* FROM variable_symbol vs
+		$sql = "SELECT vs.customer_id,vs.user_id,issue_date,payment_date,i.* FROM variable_symbol vs
 			JOIN invoice i ON i.variable_symbol_id=vs.id
 			WHERE vs.id=?";
 

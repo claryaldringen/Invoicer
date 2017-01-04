@@ -16,15 +16,14 @@ class EciovniFactory
 	/**
 	 * Creates Eciovni component.
 	 *
-	 * @param User $user
+	 * @param array $supplier
 	 * @param Row $customer
 	 * @param Row $payment
 	 * @param array $items
 	 * @return Eciovni
 	 */
-	public function create(User $user, Row $customer, Row $payment, array $items) {
+	public function create($supplier, Row $customer, Row $payment, array $items) {
 
-		$supplier = (object)$user->identity->data;
 		$supplierBuilder = new ParticipantBuilder($supplier->name, $supplier->street, $supplier->number, $supplier->city, $supplier->post_code);
 		$dic = empty($supplier->dic) ? '' : $supplier->dic;
 		$supplier = $supplierBuilder->setIn($supplier->ico)->setTin($dic)->setAccountNumber($supplier->account)->build();

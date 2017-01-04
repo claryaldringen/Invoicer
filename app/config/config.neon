@@ -23,6 +23,7 @@ services:
 	- App\Forms\SignFormFactory
 	- App\Invoice\EciovniFactory
 	- App\Model\CustomerModel
+	- App\Model\SupplierModel
 	- App\Model\InvoiceModel
 	- App\Mail\Reader
 	- App\Mail\Sender

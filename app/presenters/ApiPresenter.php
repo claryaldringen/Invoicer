@@ -7,17 +7,22 @@ namespace App\Presenters;
 
 use Nette,
 	App\Model\CustomerModel,
+	App\Model\SupplierModel,
 	App\Model\InvoiceModel,
 	App\Mail\Reader,
 	Nette\Mail\SendmailMailer,
 	App\Mail\Sender,
 	App\Invoice\EciovniFactory;
+use Tracy\Debugger;
 
 
 class ApiPresenter extends BasePresenter{
 
 	/** @var CustomerModel @inject */
 	public $customerModel;
+
+	/** @var SupplierModel @inject */
+	public $supplierModel;
 
 	/** @var InvoiceModel @inject */
 	public $invoiceModel;
@@ -45,7 +50,12 @@ class ApiPresenter extends BasePresenter{
 		$payment = $this->invoiceModel->getPaymentData($this->variableSymbol);
 		$items = $this->invoiceModel->getItems($payment->variable_symbol_id);
 		$customer = $this->customerModel->getCustomer($payment->customer_id);
-		return $this->eciovniFactory->create($this->getUser(), $customer, $payment, $items);
+		if($this->getUser()->isLoggedIn()) {
+			$suplier = $this->getUser()->identity->data;
+		} else {
+			$suplier = (array)$this->supplierModel->getUser($payment->user_id);
+		}
+		return $this->eciovniFactory->create($suplier, $customer, $payment, $items);
 	}
 
 	/**
