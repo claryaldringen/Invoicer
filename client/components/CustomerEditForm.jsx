@@ -1,38 +1,34 @@
 
-class CustomerEditForm extends React.Component {
+import React from 'react';
+import { findDOMNode } from 'react-dom'
+
+export default class CustomerEditForm extends React.Component {
 
 	handleSubmit(event) {
 		event.preventDefault();
 
-		this.props.customer.name = React.findDOMNode(this.refs.name).value;
-		this.props.customer.street = React.findDOMNode(this.refs.street).value;
-		this.props.customer.number = React.findDOMNode(this.refs.number).value;
-		this.props.customer.city = React.findDOMNode(this.refs.city).value;
-		this.props.customer.post_code = React.findDOMNode(this.refs.post_code).value;
-		this.props.customer.ico = React.findDOMNode(this.refs.ico).value;
-		this.props.customer.dic = React.findDOMNode(this.refs.dic).value;
-		this.props.customer.email = React.findDOMNode(this.refs.email).value;
+		const customer = {
+			id: this.props.customer.id,
+			name: findDOMNode(this.refs.name).value,
+			street: findDOMNode(this.refs.street).value,
+			number: findDOMNode(this.refs.number).value,
+			city: findDOMNode(this.refs.city).value,
+			post_code: findDOMNode(this.refs.post_code).value,
+			ico: findDOMNode(this.refs.ico).value,
+			dic: findDOMNode(this.refs.dic).value,
+			email: findDOMNode(this.refs.email).value
+		}
 
-		var method = 'post';
-		if(this.props.customer.id > 0) method = 'put';
+		if(customer.id > 0) {
+			this.props.updateCustomer(customer);
+		} else {
+			this.props.addCustomer(customer);
+		}
 
-		$.ajax({
-			url: 'api/customers',
-			method: method,
-			dataType: 'json',
-			data: this.props.customer,
-			success: (data) => {
-				this.props.customer.id = data.id;
-				this.props.onSubmit(this);
-			},
-			error: (xhr, status, err) => {
-				console.log(err);
-			}
-		});
 	}
 
 	render() {
-		var customer = this.props.customer;
+		const customer = this.props.customer;
 
 		return(
 			<form onSubmit={this.handleSubmit.bind(this)}>

@@ -77,6 +77,10 @@ s	 */
 		}
 	}
 
+	public function getSupplier($id) {
+	    return $this->database->query("SELECT * FROM user WHERE id=?", $id)->fetch();
+    }
+
 }
 
 

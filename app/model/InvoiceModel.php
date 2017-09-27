@@ -48,6 +48,15 @@ class InvoiceModel {
 		return $vsId;
 	}
 
+	public function setItems($data) {
+		$items = $data['items'];
+		foreach($items as $key => $item) {
+			$items[$key]['customer_id'] = $data['customerId'];
+		}
+		$this->db->query("INSERT INTO item ", $items);
+		return $this;
+	}
+
 	public function invoiceFromVs($vsId, $send = false) {
 		$this->db->beginTransaction();
 		try {
@@ -63,13 +72,17 @@ class InvoiceModel {
 		return $this;
 	}
 
-	public function getPaymentData($vsId) {
+	public function getInvoiceData($vsId) {
 		$sql = "SELECT vs.customer_id,vs.user_id,issue_date,payment_date,i.* FROM variable_symbol vs
 			JOIN invoice i ON i.variable_symbol_id=vs.id
 			WHERE vs.id=?";
 
 		return $this->db->query($sql, $vsId)->fetch();
 	}
+
+	public function getPaymentData($vsId) {
+        return $this->db->query("SELECT customer_id,user_id,issue_date,payment_date FROM variable_symbol WHERE id=?", $vsId)->fetch();
+    }
 
 	public function getItems($vsId) {
 		return $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $vsId)->fetchAll();
@@ -125,6 +138,22 @@ class InvoiceModel {
 		return $rows;
 	}
 
+	public function getCyclicPreInvoices() {
+		$sql = "SELECT vs.id,cp.next_check AS issue_date,c.name,c.street,c.number,c.post_code,c.city,c.ico,c.dic
+			FROM variable_symbol vs
+			JOIN customer c ON c.id=vs.customer_id
+			JOIN cyclic_payments cp ON cp.variable_symbol_id=vs.id
+			ORDER BY vs.id DESC";
+
+		$rows = $this->db->query($sql)->fetchAll();
+
+		foreach($rows as &$row) {
+			$row['items'] = $this->db->query("SELECT * FROM item WHERE variable_symbol_id=?", $row['id'])->fetchAll();
+		}
+
+		return $rows;
+	}
+
 	public function delete($variableSymbolId) {
 		$this->db->beginTransaction();
 		try {
@@ -140,6 +169,16 @@ class InvoiceModel {
 			throw $ex;
 		}
 		$this->db->commit();
+		return $this;
+	}
+
+	public function deleteCyclic($vs) {
+		$this->db->query("DELETE FROM cyclic_payments WHERE variable_symbol_id=?", $vs);
+		return $this;
+	}
+
+	public function setCyclic($vs, $date) {
+		$this->db->query("INSERT INTO cyclic_payments", ['variable_symbol_id' => $vs, 'next_check' => $date]);
 		return $this;
 	}
 
@@ -171,6 +210,7 @@ class InvoiceModel {
 					$item['variable_symbol_id'] = $newVs;
 				}
 				$this->db->query("INSERT INTO item", $items);
+				$this->db->query("UPDATE item SET variable_symbol_id=? WHERE customer_id=?", $newVs, $row['customer_id']);
 
 				$this->db->query("UPDATE cyclic_payments SET next_check=? WHERE variable_symbol_id=?", date('Y-m-d H:i:s', strtotime($row['next_check']) + 3600 * 24 * 365), $row['variable_symbol_id']);
 				$result[] = ['vs' => $newVs, 'customer_id' => $row['customer_id']];

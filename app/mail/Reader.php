@@ -22,7 +22,7 @@ class Reader {
 	 * @return array
 	 */
 	public function read() {
-		$this->conn = imap_open('{freetech.cz/notls}', 'invoice@freetech.cz', 'invoice');
+		$this->conn = imap_open('{freetech.cz/notls}', 'invoice@freetech.cz', '');
 		$mails = array();
 		$msgCnt = imap_num_msg($this->conn);
 		for($i = 1; $i <= $msgCnt; $i++) {

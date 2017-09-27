@@ -24,7 +24,7 @@ class Request extends \Nette\Http\Request
 	{
 		if($this->isMethod('PUT')) {
 			if(empty($this->put)) {
-				$this->put = parse_str($this->getRawBody());
+				$this->put = json_decode($this->getRawBody(), true);
 			}
 			if (func_num_args() === 0) {
 				return $this->put;

@@ -47,15 +47,11 @@ class ApiPresenter extends BasePresenter{
 	 * @return \OndrejBrejla\Eciovni\Eciovni
 	 */
 	protected function createComponentEciovni() {
-		$payment = $this->invoiceModel->getPaymentData($this->variableSymbol);
+		$payment = $this->invoiceModel->getInvoiceData($this->variableSymbol);
 		$items = $this->invoiceModel->getItems($payment->variable_symbol_id);
 		$customer = $this->customerModel->getCustomer($payment->customer_id);
-		if($this->getUser()->isLoggedIn()) {
-			$suplier = $this->getUser()->identity->data;
-		} else {
-			$suplier = (array)$this->supplierModel->getUser($payment->user_id);
-		}
-		return $this->eciovniFactory->create($suplier, $customer, $payment, $items);
+		$supplier = $this->supplierModel->getUser($payment->user_id);
+		return $this->eciovniFactory->create($supplier, $customer, $payment, $items);
 	}
 
 	/**
@@ -66,7 +62,7 @@ class ApiPresenter extends BasePresenter{
 		if($request->isMethod('GET')) {
 			$response = $this->customerModel->getCustomers();
 		} elseif($request->isMethod('POST')) {
-			$id = $this->customerModel->insertCustomer($request->getPost());
+			$id = $this->customerModel->insertCustomer(json_decode($request->getRawBody(), true));
 			$response = array('id' => $id);
 		} elseif($request->isMethod('PUT')) {
 			$id = $this->customerModel->updateCustomer($request->getPut());
@@ -81,7 +77,7 @@ class ApiPresenter extends BasePresenter{
 	 * @throws \App\Model\Exception
 	 */
 	public function renderInvoices($id) {
-		$response = array();
+		$response = [];
 		$request = $this->getHttpRequest();
 		if($request->isMethod('GET')) {
 			$response = $this->invoiceModel->getInvoices();
@@ -93,7 +89,7 @@ class ApiPresenter extends BasePresenter{
 					$this->variableSymbol = $vsId;
 					$this->mailSender->setInvoice($this['eciovni']);
 				}
-				$this->mailSender->sendMail($vsId, $data['customerId'], $data['type'] == 2);
+				$this->mailSender->sendMail($vsId, $data['type'] == 2);
 			}
 			$response['invoices'] = $this->invoiceModel->getInvoices();
 			$response['preinvoices'] = $this->invoiceModel->getPreInvoices();
@@ -104,16 +100,47 @@ class ApiPresenter extends BasePresenter{
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
 
+	public function renderSendMail($id) {
+        $this->mailSender->sendMail($id);
+        $this->sendResponse(new Nette\Application\Responses\JsonResponse([]));
+    }
+
+	public function renderItems() {
+        $response = [];
+		$request = $this->getHttpRequest();
+		if($request->isMethod('POST')) {
+			$data = $request->getPost();
+            $this->invoiceModel->setItems($data);
+            $response['invoices'] = $this->invoiceModel->getInvoices();
+            $response['preinvoices'] = $this->invoiceModel->getPreInvoices();
+		}
+        $this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
+	}
+
 	/**
 	 * Handle of /api/invoices call.
 	 *
 	 * @throws \App\Model\Exception
 	 */
-	public function renderPreInvoices($id) {
-		$response = array();
+	public function renderPreInvoices() {
+		$response = [];
 		$request = $this->getHttpRequest();
 		if($request->isMethod('GET')) {
 			$response = $this->invoiceModel->getPreInvoices();
+		}
+		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
+	}
+
+	public function renderCyclic($id) {
+		$response = [];
+		$request = $this->getHttpRequest();
+		if($request->isMethod('GET')) {
+			$response = $this->invoiceModel->getCyclicPreInvoices();
+		} elseif($request->isMethod('DELETE')) {
+			$response = $this->invoiceModel->deleteCyclic($id)->getCyclicPreInvoices();
+		} elseif($request->isMethod('POST')) {
+			$date = json_decode($request->getRawBody(), true);
+			$response = $this->invoiceModel->setCyclic($id, $date['next_check'])->getCyclicPreInvoices();
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
@@ -134,7 +161,7 @@ class ApiPresenter extends BasePresenter{
 					$this->invoiceModel->invoiceFromVs($payment['vs'], TRUE);
 					$this->variableSymbol = $payment['vs'];
 					$this->mailSender->setInvoice($this['eciovni']);
-					$this->mailSender->sendMail($payment['vs'], NULL, TRUE);
+					$this->mailSender->sendMail($payment['vs'], TRUE);
 					$response .= "Variable symbol {$payment['vs']} with amount {$payment['price']} is OK.\n";
 				} else {
 					$response .= $status . "\n";
@@ -150,7 +177,7 @@ class ApiPresenter extends BasePresenter{
 		$response = ['datetime' => date('Y-m-d H:i:s')];
 		$response['payments'] = $this->invoiceModel->getCyclicPayments();
 		foreach($response['payments'] as $payment) {
-			$this->mailSender->sendMail($payment['vs'], $payment['customer_id']);
+			$this->mailSender->sendMail($payment['vs']);
 		}
 		$this->sendResponse(new Nette\Application\Responses\JsonResponse($response));
 	}
